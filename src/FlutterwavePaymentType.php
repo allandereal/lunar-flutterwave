@@ -2,31 +2,33 @@
 
 namespace Lunar\Flutterwave;
 
+use Exception;
+use Flutterwave\Flutterwave;
+use Flutterwave\Service\Transactions;
 use Lunar\Base\DataTransferObjects\PaymentAuthorize;
 use Lunar\Base\DataTransferObjects\PaymentCapture;
 use Lunar\Base\DataTransferObjects\PaymentRefund;
 use Lunar\Exceptions\DisallowMultipleCartOrdersException;
+use Lunar\Flutterwave\Actions\UpdateOrderFromTransaction;
+use Lunar\Flutterwave\DataTransferObjects\FlutterwaveRefund;
+use Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction;
+use Lunar\Flutterwave\Facades\FlutterwaveFacade;
 use Lunar\Models\Transaction;
 use Lunar\PaymentTypes\AbstractPayment;
-use Lunar\Flutterwave\Actions\UpdateOrderFromIntent;
-use Lunar\Flutterwave\Facades\FlutterwaveFacade;
-use Stripe\Exception\InvalidRequestException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
 
 class FlutterwavePaymentType extends AbstractPayment
 {
     /**
      * The Flutterwave instance.
-     *
-     * @var \Stripe\Stripelient
      */
-    protected $flutterwave;
+    protected Flutterwave $flutterwave;
 
     /**
-     * The Payment intent.
+     * The transaction.
      */
-    protected PaymentIntent $paymentIntent;
+    protected ?\stdClass $transaction;
+
+    protected ?\stdClass $refund;
 
     /**
      * The policy when capturing payments.
@@ -63,47 +65,50 @@ class FlutterwavePaymentType extends AbstractPayment
             }
         }
 
-        $paymentIntentId = $this->data['payment_intent'];
-
-        $this->paymentIntent = $this->flutterwave->paymentIntents->retrieve(
-            $paymentIntentId
-        );
-
-        if (! $this->paymentIntent) {
+        $transactionId = $this->data['transaction_id'];
+        try {
+            $response = (new Transactions($this->flutterwave->getConfig()))->verify($transactionId);
+        } catch (Exception $e) {
             return new PaymentAuthorize(
                 success: false,
-                message: 'Unable to locate payment intent',
+                message: $e->getMessage(),
                 orderId: $this->order->id,
             );
         }
 
-        if ($this->paymentIntent->status == PaymentIntent::STATUS_REQUIRES_CAPTURE && $this->policy == 'automatic') {
-            $this->paymentIntent = $this->flutterwave->paymentIntents->capture(
-                $this->data['payment_intent']
+        $this->transaction = new FlutterwaveTransaction($response->data ?? null);
+
+        if ($this->transaction->status != FlutterwaveTransaction::STATUS_SUCCESSFUL) {
+            return new PaymentAuthorize(
+                success: false,
+                message: "Transaction {$this->transaction->status}",
+                orderId: $this->order->id,
             );
         }
 
         if ($this->cart) {
-            if (! ($this->cart->meta['payment_intent'] ?? null)) {
+            if (! ($this->cart->meta['transaction_id'] ?? null)) {
                 $this->cart->update([
                     'meta' => [
-                        'payment_intent' => $this->paymentIntent->id,
+                        'transaction_id' => $this->transaction->id,
+                        'tx_ref' => $this->transaction->tx_ref,
                     ],
                 ]);
             } else {
-                $this->cart->meta['payment_intent'] = $this->paymentIntent->id;
+                $this->cart->meta['transaction_id'] = $this->transaction->id;
+                $this->cart->meta['tx_ref'] = $this->transaction->tx_ref;
                 $this->cart->save();
             }
         }
 
-        $order = (new UpdateOrderFromIntent)->execute(
+        $order = (new UpdateOrderFromTransaction)->execute(
             $this->order,
-            $this->paymentIntent
+            $this->transaction
         );
 
         return new PaymentAuthorize(
             success: (bool) $order->placed_at,
-            message: $this->paymentIntent->last_payment_error,
+            message: $this->transaction->last_payment_error,
             orderId: $order->id
         );
     }
@@ -118,26 +123,23 @@ class FlutterwavePaymentType extends AbstractPayment
         $payload = [];
 
         if ($amount > 0) {
-            $payload['amount_to_capture'] = $amount;
+            $payload['amount'] = $amount;
         }
 
-        $charge = FlutterwaveFacade::getCharge($transaction->reference);
+        $transaction = FlutterwaveFacade::fetchTransaction($transaction->id);
 
-        $paymentIntent = FlutterwaveFacade::fetchIntent($charge->payment_intent);
+        if ($transaction?->status != FlutterwaveTransaction::STATUS_SUCCESSFUL) {
+            try {
+                //TODO: retry payment request on flutterwave transaction
+            } catch (Exception $e) {
+                return new PaymentCapture(
+                    success: false,
+                    message: $e->getMessage()
+                );
+            }
 
-        try {
-            $response = $this->flutterwave->paymentIntents->capture(
-                $paymentIntent->id,
-                $payload
-            );
-        } catch (InvalidRequestException $e) {
-            return new PaymentCapture(
-                success: false,
-                message: $e->getMessage()
-            );
+            UpdateOrderFromTransaction::execute($transaction->order, $transaction);
         }
-
-        UpdateOrderFromIntent::execute($transaction->order, $paymentIntent);
 
         return new PaymentCapture(success: true);
     }
@@ -149,12 +151,8 @@ class FlutterwavePaymentType extends AbstractPayment
      */
     public function refund(Transaction $transaction, int $amount = 0, $notes = null): PaymentRefund
     {
-        $charge = FlutterwaveFacade::getCharge($transaction->reference);
-
         try {
-            $refund = $this->flutterwave->refunds->create(
-                ['payment_intent' => $charge->payment_intent, 'amount' => $amount]
-            );
+            $refund = (new Transactions($this->flutterwave->getConfig()))->refund($transaction->reference);
         } catch (InvalidRequestException $e) {
             return new PaymentRefund(
                 success: false,
@@ -162,12 +160,14 @@ class FlutterwavePaymentType extends AbstractPayment
             );
         }
 
+        $this->refund = (new FlutterwaveRefund($refund->data ?? null));
+
         $transaction->order->transactions()->create([
-            'success' => $refund->status != 'failed',
+            'success' => $refund->status == FlutterwaveRefund::STATUS_COMPLETED,
             'type' => 'refund',
             'driver' => 'flutterwave',
-            'amount' => $refund->amount,
-            'reference' => $refund->payment_intent,
+            'amount' => $refund->amount_refunded,
+            'reference' => $refund->id,
             'status' => $refund->status,
             'notes' => $notes,
             'card_type' => $transaction->card_type,

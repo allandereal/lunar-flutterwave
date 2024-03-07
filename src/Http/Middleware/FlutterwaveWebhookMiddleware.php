@@ -5,14 +5,12 @@ namespace Lunar\Flutterwave\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Lunar\Flutterwave\Concerns\ConstructsWebhookEvent;
-use Stripe\Exception\SignatureVerificationException;
-use Stripe\Exception\UnexpectedValueException;
 
 class FlutterwaveWebhookMiddleware
 {
-    public function handle(Request $request, Closure $next = null)
+    public function handle(Request $request, ?Closure $next = null)
     {
-        $secret = config('services.flutterwave.webhooks.payment_intent');
+        $secret = config('services.flutterwave.encryption_key');
         $flutterwaveSig = $request->header('Flutterwave-Signature');
 
         try {
@@ -21,7 +19,7 @@ class FlutterwaveWebhookMiddleware
                 $flutterwaveSig,
                 $secret
             );
-        } catch (UnexpectedValueException|SignatureVerificationException $e) {
+        } catch (\Exception $e) {
             abort(400, $e->getMessage());
         }
 
@@ -33,6 +31,8 @@ class FlutterwaveWebhookMiddleware
                 'payment_intent.payment_failed',
                 'payment_intent.processing',
                 'payment_intent.succeeded',
+                //TODO add all response events for flutterwave
+                'charge.completed',
             ]
         )) {
             return response('', 200);

@@ -4,9 +4,9 @@ namespace Lunar\Flutterwave\Tests\Flutterwave;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-use Stripe\HttpClient\ClientInterface;
+//use Stripe\HttpClient\ClientInterface;
 
-class MockClient implements ClientInterface
+class MockClient //implements ClientInterface
 {
     public $rbody = '{}';
 

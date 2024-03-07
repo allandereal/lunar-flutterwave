@@ -4,22 +4,18 @@ namespace Lunar\Flutterwave\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Log;
 use Lunar\Events\PaymentAttemptEvent;
 use Lunar\Facades\Payments;
-use Lunar\Models\Cart;
 use Lunar\Flutterwave\Concerns\ConstructsWebhookEvent;
-use Stripe\Exception\SignatureVerificationException;
-use Stripe\Exception\UnexpectedValueException;
+use Lunar\Models\Cart;
 
 final class WebhookController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $secret = config('services.flutterwave.webhooks.payment_intent');
+        $secret = config('services.flutterwave.encryption_key');
         $flutterwaveSig = $request->header('Flutterwave-Signature');
 
         try {
@@ -28,23 +24,24 @@ final class WebhookController extends Controller
                 $flutterwaveSig,
                 $secret
             );
-        } catch (UnexpectedValueException|SignatureVerificationException $e) {
+        } catch (\Exception $e) {
             Log::error(
                 $error = $e->getMessage()
             );
+
             return response(status: 400)->json([
                 'webhook_successful' => false,
                 'message' => $error,
             ]);
         }
 
-        $paymentIntent = $event->data->object->id;
+        $transactionId = $event->data->object->id;
 
-        $cart = Cart::where('meta->payment_intent', '=', $paymentIntent)->first();
+        $cart = Cart::where('meta->transaction_id', '=', $transactionId)->first();
 
         if (! $cart) {
             Log::error(
-                $error = "Unable to find cart with intent ${paymentIntent}"
+                $error = "Unable to find cart with intent ${$transactionId}"
             );
 
             return response(status: 400)->json([
@@ -53,11 +50,12 @@ final class WebhookController extends Controller
             ]);
         }
 
-        $payment = Payments::driver('flutterwave')->cart($cart->calculate())->withData([
-            'payment_intent' => $paymentIntent,
-        ])->authorize();
+        //        $payment = Payments::driver('flutterwave')->cart($cart->calculate())->withData([
+        //            'transaction_id' => $transactionId,
+        //            'tx_ref' => $event->data?->tx_ref,
+        //        ])->authorize();
 
-        PaymentAttemptEvent::dispatch($payment);
+        //        PaymentAttemptEvent::dispatch($payment);
 
         return response()->json([
             'webhook_successful' => true,

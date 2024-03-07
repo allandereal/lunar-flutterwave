@@ -13,7 +13,6 @@
   "require": {
       "php": "^8.0",
       "lunarphp/lunar": "^0.8",
-      "stripe/stripe-php": "^7.114",
       "flutterwavedev/flutterwave-v3": "^1.0",
       "livewire/livewire": "^2.0",
       "laravel/pint": "^1.13"

@@ -47,7 +47,6 @@ class PaymentForm extends Component
     public function mount()
     {
         $this->setConfig();
-        Flutterwave::setApiKey(config('services.flutterwave.key'));
         $this->policy = config('flutterwave.policy', 'capture');
     }
 

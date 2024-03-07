@@ -37,13 +37,11 @@ return [
     | Reference: https://flutterwave.com/docs/api/charges/object
     */
     'status_mapping' => [
-        \Stripe\PaymentIntent::STATUS_REQUIRES_CAPTURE => 'requires-capture',
-        \Stripe\PaymentIntent::STATUS_CANCELED => 'cancelled',
-        \Stripe\PaymentIntent::STATUS_PROCESSING => 'processing',
-        \Stripe\PaymentIntent::STATUS_REQUIRES_ACTION => 'awaiting-payment',
-        \Stripe\PaymentIntent::STATUS_REQUIRES_CONFIRMATION => 'auth-pending',
-        \Stripe\PaymentIntent::STATUS_REQUIRES_PAYMENT_METHOD => 'failed',
-        \Stripe\PaymentIntent::STATUS_SUCCEEDED => 'payment-received',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_SUCCESSFUL => 'successful',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_CANCELED => 'canceled',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_PROCESSING => 'processing',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_PENDING => 'pending',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_FAILED => 'failed',
     ],
 
     'actions' => [
@@ -58,7 +56,7 @@ return [
         |
         | Reference: https://flutterwave.com/docs/api/charges/object
         */
-        'store_charges' => \Lunar\Flutterwave\Actions\StoreCharges::class,
+        'store_charges' => \Lunar\Flutterwave\Actions\StoreTransaction::class,
 
         'generate_transaction_reference' => \Lunar\Flutterwave\Actions\GenerateTransactionReference::class,
     ],

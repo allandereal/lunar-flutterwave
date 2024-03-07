@@ -13,7 +13,7 @@ it('can store successful charge', function () {
 
     $charges = collect($paymentIntent->charges->data);
 
-    $order = app(\Lunar\Flutterwave\Actions\StoreCharges::class)->store($order, $charges);
+    $order = app(\Lunar\Flutterwave\Actions\StoreTransaction::class)->store($order, $charges);
 
     expect($order->transactions)->toHaveCount(1);
 
@@ -36,11 +36,11 @@ it('updates existing transactions', function () {
 
     $charges = collect($paymentIntent->charges->data);
 
-    $order = app(\Lunar\Flutterwave\Actions\StoreCharges::class)->store($order, $charges);
+    $order = app(\Lunar\Flutterwave\Actions\StoreTransaction::class)->store($order, $charges);
 
     expect($order->transactions)->toHaveCount(1);
 
-    $order = app(\Lunar\Flutterwave\Actions\StoreCharges::class)->store($order, $charges);
+    $order = app(\Lunar\Flutterwave\Actions\StoreTransaction::class)->store($order, $charges);
 
     expect($order->transactions)->toHaveCount(1);
 })->group('lunar.flutterwave.actions');

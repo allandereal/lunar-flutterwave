@@ -12,7 +12,7 @@ it('creates pending transaction when status is requires_action', function () {
         ->paymentIntents
         ->retrieve('PI_REQUIRES_ACTION');
 
-    $updatedOrder = \Lunar\Flutterwave\Actions\UpdateOrderFromIntent::execute($order, $paymentIntent);
+    $updatedOrder = \Lunar\Flutterwave\Actions\UpdateOrderFromTransaction::execute($order, $paymentIntent);
 
     expect($updatedOrder->status)->toBe($order->status);
     expect($updatedOrder->placed_at)->toBeNull();

@@ -6,14 +6,15 @@ use Cartalyst\Converter\Laravel\ConverterServiceProvider;
 use Illuminate\Support\Facades\Config;
 use Kalnoy\Nestedset\NestedSetServiceProvider;
 use Livewire\LivewireServiceProvider;
-use Lunar\LunarServiceProvider;
 use Lunar\Flutterwave\FlutterwavePaymentsServiceProvider;
 use Lunar\Flutterwave\Tests\Flutterwave\MockClient;
+use Lunar\LunarServiceProvider;
 use Lunar\Tests\Stubs\User;
 use Spatie\Activitylog\ActivitylogServiceProvider;
 use Spatie\LaravelBlink\BlinkServiceProvider;
 use Spatie\MediaLibrary\MediaLibraryServiceProvider;
-use Stripe\ApiRequestor;
+
+//use Stripe\ApiRequestor;
 
 class TestCase extends \Orchestra\Testbench\TestCase
 {
@@ -28,7 +29,7 @@ class TestCase extends \Orchestra\Testbench\TestCase
         activity()->disableLogging();
 
         $mockClient = new MockClient();
-        ApiRequestor::setHttpClient($mockClient);
+        //        ApiRequestor::setHttpClient($mockClient);
     }
 
     protected function getPackageProviders($app)

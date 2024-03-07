@@ -13,7 +13,7 @@ it('can handle valid event', function () {
         };
     });
 
-    $request = \Illuminate\Http\Request::create('/strip-webhook', 'POST');
+    $request = \Illuminate\Http\Request::create('/stripe-webhook', 'POST');
     $request->headers->set('Flutterwave-Signature', 'foobar');
     $middleware = new \Lunar\Flutterwave\Http\Middleware\FlutterwaveWebhookMiddleware([]);
 

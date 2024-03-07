@@ -2,53 +2,54 @@
 
 namespace Lunar\Flutterwave\Managers;
 
+use Flutterwave\Flutterwave;
 use Illuminate\Support\Collection;
 use Lunar\Models\Cart;
-use Stripe\Charge;
-use Stripe\Exception\InvalidRequestException;
-use Stripe\PaymentIntent;
-use Stripe\Stripe;
-use Stripe\StripeClient;
+use Lunar\Models\Transaction;
 
 class FlutterwaveManager
 {
     public function __construct()
     {
-        Stripe::setApiKey(config('services.flutterwave.key'));
+        Flutterwave::setUp([
+            'secret_key' => config('services.flutterwave.secret_key'),
+            'public_key' => config('services.flutterwave.public_key'),
+            'encryption_key' => config('services.flutterwave.encryption_key'),
+            'environment' => config('app.env'),
+        ]);
     }
 
     /**
      * Return the Flutterwave client
      */
-    public function getClient(): StripeClient
+    public function getClient(): Flutterwave
     {
-        return new StripeClient(
-            config('services.flutterwave.key')
-        );
+        return new Flutterwave();
     }
 
     /**
      * Create a payment intent from a Cart
      *
-     * @return \Stripe\PaymentIntent
+     * @return Transaction
      */
-    public function createIntent(Cart $cart)
+    public function createTransaction(Cart $cart)
     {
         $shipping = $cart->shippingAddress;
 
         $meta = (array) $cart->meta;
 
-        if ($meta && ! empty($meta['payment_intent'])) {
-            $intent = $this->fetchIntent(
-                $meta['payment_intent']
-            );
+        if ($meta && ! empty($meta['transaction_id'])) {
+            $transaction = new Transaction();
+            //            $intent = $this->fetchTransaction(
+            //                $meta['transaction_id']
+            //            );
 
-            if ($intent) {
-                return $intent;
+            if ($transaction) {
+                return $transaction;
             }
         }
 
-        $paymentIntent = $this->buildIntent(
+        $paymentIntent = $this->buildTransaction(
             $cart->total->value,
             $cart->currency->code,
             $shipping,
@@ -57,7 +58,7 @@ class FlutterwaveManager
         if (! $meta) {
             $cart->update([
                 'meta' => [
-                    'payment_intent' => $paymentIntent->id,
+                    'transaction_id' => $paymentIntent->id,
                 ],
             ]);
         } else {
@@ -69,7 +70,7 @@ class FlutterwaveManager
         return $paymentIntent;
     }
 
-    public function syncIntent(Cart $cart)
+    public function syncTransaction(Cart $cart)
     {
         $meta = (array) $cart->meta;
 
@@ -79,36 +80,30 @@ class FlutterwaveManager
 
         $cart = $cart->calculate();
 
-        $this->getClient()->paymentIntents->update(
-            $meta['payment_intent'],
-            ['amount' => $cart->total->value]
-        );
+        //        $this->getClient()->paymentIntents->update(
+        //            $meta['payment_intent'],
+        //            ['amount' => $cart->total->value]
+        //        );
     }
 
     /**
      * Fetch an intent from the Flutterwave API.
      *
      * @param  string  $intentId
-     * @return null|\Stripe\PaymentIntent
+     * @return null|Transaction
      */
-    public function fetchIntent($intentId)
+    public function fetchTransaction($transactionId)
     {
-        try {
-            $intent = PaymentIntent::retrieve($intentId);
-        } catch (InvalidRequestException $e) {
-            return null;
-        }
-
-        return $intent;
+        return Transaction::find($transactionId);
     }
 
     public function getCharges(string $paymentIntentId): Collection
     {
         try {
             return collect(
-                $this->getClient()->charges->all([
-                    'payment_intent' => $paymentIntentId,
-                ])['data'] ?? null
+                //                $this->getClient()->charges->all([
+                //                    'payment_intent' => $paymentIntentId,
+                //                ])['data'] ?? null
             );
         } catch (\Exception $e) {
             //
@@ -117,37 +112,32 @@ class FlutterwaveManager
         return collect();
     }
 
-    public function getCharge($chargeId)
-    {
-        return $this->getClient()->charges->retrieve($chargeId);
-    }
-
     /**
      * Build the intent
      *
      * @param  int  $value
      * @param  string  $currencyCode
      * @param  \Lunar\Models\CartAddress  $shipping
-     * @return \Stripe\PaymentIntent
      */
-    protected function buildIntent($value, $currencyCode, $shipping)
+    protected function buildTransaction($value, $currencyCode, $shipping)
     {
-        return PaymentIntent::create([
-            'amount' => $value,
-            'currency' => $currencyCode,
-            'automatic_payment_methods' => ['enabled' => true],
-            'capture_method' => config('lunar.flutterwave.policy', 'automatic'),
-            'shipping' => [
-                'name' => "{$shipping->first_name} {$shipping->last_name}",
-                'address' => [
-                    'city' => $shipping->city,
-                    'country' => $shipping->country->iso2,
-                    'line1' => $shipping->line_one,
-                    'line2' => $shipping->line_two,
-                    'postal_code' => $shipping->postcode,
-                    'state' => $shipping->state,
-                ],
-            ],
-        ]);
+        return new \stdClass();
+        //        return PaymentIntent::create([
+        //            'amount' => $value,
+        //            'currency' => $currencyCode,
+        //            'automatic_payment_methods' => ['enabled' => true],
+        //            'capture_method' => config('lunar.flutterwave.policy', 'automatic'),
+        //            'shipping' => [
+        //                'name' => "{$shipping->first_name} {$shipping->last_name}",
+        //                'address' => [
+        //                    'city' => $shipping->city,
+        //                    'country' => $shipping->country->iso2,
+        //                    'line1' => $shipping->line_one,
+        //                    'line2' => $shipping->line_two,
+        //                    'postal_code' => $shipping->postcode,
+        //                    'state' => $shipping->state,
+        //                ],
+        //            ],
+        //        ]);
     }
 }
