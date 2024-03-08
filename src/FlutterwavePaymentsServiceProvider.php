@@ -34,9 +34,8 @@ class FlutterwavePaymentsServiceProvider extends ServiceProvider
         });
 
         Blade::directive('flutterwaveScripts', function () {
-            $script = config('services.flutterwave.url', 'https://checkout.flutterwave.com/v3.js');
             return <<<'EOT'
-                <script src="{$script}"></script>
+                <script src="https://checkout.flutterwave.com/v3.js"></script>
             EOT;
         });
 
