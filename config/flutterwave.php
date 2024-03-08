@@ -37,7 +37,7 @@ return [
     | Reference: https://flutterwave.com/docs/api/charges/object
     */
     'status_mapping' => [
-        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_SUCCESSFUL => 'successful',
+        \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_SUCCESSFUL => 'payment-received',
         \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_CANCELED => 'canceled',
         \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_PROCESSING => 'processing',
         \Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction::STATUS_PENDING => 'pending',
