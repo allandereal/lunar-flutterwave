@@ -41,7 +41,7 @@ final class WebhookController extends Controller
 
         if (! $cart) {
             Log::error(
-                $error = "Unable to find cart with intent ${$transactionId}"
+                $error = "Unable to find cart with intent {$transactionId}"
             );
 
             return response(status: 400)->json([
