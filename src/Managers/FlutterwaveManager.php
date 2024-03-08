@@ -2,29 +2,21 @@
 
 namespace Lunar\Flutterwave\Managers;
 
-use Flutterwave\Contract\ConfigInterface;
 use Flutterwave\Flutterwave;
 use Illuminate\Support\Collection;
-use Lunar\Flutterwave\FlutterwaveConfig;
 use Lunar\Models\Cart;
 use Lunar\Models\Transaction;
 
 class FlutterwaveManager
 {
-    public ?ConfigInterface $config;
-
     public function __construct()
     {
-        $conf = [
+        Flutterwave::setUp([
             'secret_key' => config('services.flutterwave.secret_key'),
             'public_key' => config('services.flutterwave.public_key'),
             'encryption_key' => config('services.flutterwave.encryption_key'),
             'environment' => config('app.env'),
-        ];
-
-        Flutterwave::setUp($conf);
-
-        $this->config = new FlutterwaveConfig(...array_values($conf));
+        ]);
     }
 
     /**
@@ -33,11 +25,6 @@ class FlutterwaveManager
     public function getClient(): Flutterwave
     {
         return new Flutterwave();
-    }
-
-    public function getConfig(): FlutterwaveConfig
-    {
-        return $this->config;
     }
 
     /**
