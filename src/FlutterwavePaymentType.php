@@ -24,7 +24,7 @@ class FlutterwavePaymentType extends AbstractPayment
     protected Flutterwave $flutterwave;
 
     /**
-     * The transaction.
+     * The transaction object.
      */
     protected ?\stdClass $transaction;
 
@@ -101,10 +101,7 @@ class FlutterwavePaymentType extends AbstractPayment
             }
         }
 
-        $order = (new UpdateOrderFromTransaction)->execute(
-            $this->order,
-            $this->transaction
-        );
+        $order = UpdateOrderFromTransaction::execute($this->order, $this->transaction);
 
         return new PaymentAuthorize(
             success: (bool) $order->placed_at,
