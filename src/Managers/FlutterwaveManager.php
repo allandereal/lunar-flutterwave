@@ -35,7 +35,7 @@ class FlutterwaveManager
         return new Flutterwave();
     }
 
-    public function getTConfig(): FlutterwaveConfig
+    public function getConfig(): FlutterwaveConfig
     {
         return $this->config;
     }
