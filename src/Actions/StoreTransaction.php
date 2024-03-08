@@ -8,7 +8,7 @@ use Lunar\Models\Transaction;
 
 class StoreTransaction
 {
-    public function store(Order $order, ?FlutterwaveTransaction $flTransaction)
+    public function store(Order $order, ?\stdClass $flTransaction)
     {
         /**
          * If charges are empty, there is nothing to update.

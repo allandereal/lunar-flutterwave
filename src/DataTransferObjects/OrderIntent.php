@@ -8,7 +8,7 @@ class OrderIntent
 {
     public function __construct(
         public Order $order,
-        public FlutterwaveTransaction $transaction
+        public \stdClass $transaction
     ) {
     }
 }

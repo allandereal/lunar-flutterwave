@@ -7,6 +7,8 @@ namespace Lunar\Flutterwave;
 use Flutterwave\Contract\ConfigInterface;
 use Flutterwave\EventHandlers\TransactionVerificationEventHandler;
 use Flutterwave\Helper\EnvVariables;
+use Flutterwave\Service\Service;
+use Flutterwave\Service\Transactions;
 use Flutterwave\Traits\ApiOperations\Post;
 use Psr\Http\Client\ClientExceptionInterface;
 

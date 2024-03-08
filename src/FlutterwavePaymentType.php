@@ -75,7 +75,7 @@ class FlutterwavePaymentType extends AbstractPayment
             );
         }
 
-        $this->transaction = new FlutterwaveTransaction($response->data ?? null);
+        $this->transaction = $response->data ?? null;
 
         if ($this->transaction->status != FlutterwaveTransaction::STATUS_SUCCESSFUL) {
             return new PaymentAuthorize(

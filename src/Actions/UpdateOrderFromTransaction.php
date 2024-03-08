@@ -10,7 +10,7 @@ class UpdateOrderFromTransaction
 {
     final public static function execute(
         Order $order,
-        ?FlutterwaveTransaction $transaction,
+        ?\stdClass $transaction,
         string $successStatus = 'successful',
         string $failStatus = 'failed'
     ): Order {

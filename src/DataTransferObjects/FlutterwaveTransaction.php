@@ -5,7 +5,7 @@ namespace Lunar\Flutterwave\DataTransferObjects;
 use Flutterwave\Contract\ConfigInterface;
 use stdClass;
 
-class FlutterwaveTransaction extends stdClass
+class FlutterwaveTransaction
 {
     const STATUS_SUCCESSFUL = 'successful';
 
@@ -38,12 +38,4 @@ class FlutterwaveTransaction extends stdClass
      * @property stdClass $customer
      * @property stdClass $card
      */
-    public function __construct(stdClass $dataObject)
-    {
-        foreach ($dataObject as $property => $value) {
-            if (property_exists(self::class, $property)) {
-                $this->$property = $value;
-            }
-        }
-    }
 }
