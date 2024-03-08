@@ -28,6 +28,13 @@ class PaymentForm extends Component
     public $returnUrl;
 
     /**
+     * The payment type selected
+     *
+     * @var string
+     */
+    public $paymentType;
+
+    /**
      * The policy for handling payments.
      *
      * @var string
