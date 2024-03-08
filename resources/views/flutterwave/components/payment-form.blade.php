@@ -23,7 +23,7 @@
       amount: {{ $this->cart->total }},
       currency: '{{ $this->cart->currency->code }}',
       payment_options: '{{ $this->config['payment_options'] }}',
-      redirect_url: '{{ $returnUrl ?: url()->current() }}',
+      redirect_url: '{{ $returnUrl ?: url()->current() }}?lunar_payment_type={{ $paymentType }}',
       meta: {{ $this->metaData }},
       customer: {
         email: '{{ $this->billing->contact_email }}',
