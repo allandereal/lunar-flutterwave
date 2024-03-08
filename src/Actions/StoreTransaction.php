@@ -72,7 +72,7 @@ class StoreTransaction
             'amount' => $flTransaction->amount,
             'reference' => $flTransaction->id,
             'status' => $flTransaction->status,
-            'notes' => $flTransaction->narraation,
+            'notes' => $flTransaction->narration ?? null,
             'card_type' => $cardType,
             'last_four' => $lastFour,
             'captured_at' => ($flTransaction->charged_amount ?? null) ? $timestamp : null,
