@@ -105,7 +105,7 @@ class FlutterwavePaymentType extends AbstractPayment
 
         return new PaymentAuthorize(
             success: (bool) $order->placed_at,
-            message: $this->transaction->last_payment_error,
+            message: $this->transaction->processor_response,
             orderId: $order->id
         );
     }

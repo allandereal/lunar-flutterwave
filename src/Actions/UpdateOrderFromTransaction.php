@@ -21,7 +21,7 @@ class UpdateOrderFromTransaction
 
             $placedAt = null;
 
-            if ($transaction->status === FlutterwaveTransaction::STATUS_SUCCESSFUL) {
+            if ($transaction->status == FlutterwaveTransaction::STATUS_SUCCESSFUL) {
                 $placedAt = now();
             }
 
