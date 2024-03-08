@@ -67,7 +67,7 @@ class FlutterwavePaymentType extends AbstractPayment
 
         $transactionId = $this->data['transaction_id'];
         try {
-            $response = (new Transactions($this->flutterwave->getConfig()))->verify($transactionId);
+            $response = (new Transactions(FlutterwaveFacade::getConfig()))->verify($transactionId);
         } catch (Exception $e) {
             return new PaymentAuthorize(
                 success: false,
@@ -149,8 +149,8 @@ class FlutterwavePaymentType extends AbstractPayment
     public function refund(Transaction $transaction, int $amount = 0, $notes = null): PaymentRefund
     {
         try {
-            $refund = (new Transactions($this->flutterwave->getConfig()))->refund($transaction->reference);
-        } catch (InvalidRequestException $e) {
+            $refund = (new Transactions(FlutterwaveFacade::getConfig()))->refund($transaction->reference);
+        } catch (Exception $e) {
             return new PaymentRefund(
                 success: false,
                 message: $e->getMessage()
