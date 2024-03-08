@@ -30,10 +30,6 @@ class StoreTransaction
 
         $type = 'capture';
 
-        if (! $flTransaction->captured) {
-            $type = 'intent';
-        }
-
         //        if ($flTransaction->amount_refunded && $flTransaction->amount_refunded < $flTransaction->amount) {
         //            $type = 'refund';
         //        }
@@ -50,22 +46,22 @@ class StoreTransaction
          * "expiry": "01/23"
          * }
          */
-        $paymentDetails = $flTransaction->card;
+        $paymentDetails = $flTransaction->card ?? null;
 
         $lastFour = null;
         $cardType = $paymentType;
         $meta = [];
 
-        if (! empty($paymentDetails['type'])) {
-            $cardType = $paymentDetails['type'];
+        if ($paymentDetails->type ?? false) {
+            $cardType = $paymentDetails->type;
         }
 
-        if (! empty($paymentDetails['last_4digits'])) {
-            $lastFour = $paymentDetails['last_4digits'];
+        if ($paymentDetails->last_4digits ?? false) {
+            $lastFour = $paymentDetails->last_4digits;
         }
 
-        if (! empty($flTransaction['id'])) {
-            $meta = array_merge($meta, (array) ($flTransaction));
+        if ($flTransaction->id ?? false) {
+            $meta = array_merge($meta, (array) $flTransaction);
         }
 
         $transaction->fill([
@@ -79,7 +75,7 @@ class StoreTransaction
             'notes' => $flTransaction->narraation,
             'card_type' => $cardType,
             'last_four' => $lastFour,
-            'captured_at' => $flTransaction->amount_captured ? $timestamp : null,
+            'captured_at' => ($flTransaction->charged_amount ?? null) ? $timestamp : null,
             'meta' => $meta,
         ]);
 
