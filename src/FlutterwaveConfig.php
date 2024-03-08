@@ -4,9 +4,11 @@ namespace Lunar\Flutterwave;
 
 use Flutterwave\Config\AbstractConfig;
 use Flutterwave\Contract\ConfigInterface;
+use Flutterwave\Helper\EnvVariables;
 
 class FlutterwaveConfig extends AbstractConfig implements ConfigInterface
 {
+    const BASE_URL = EnvVariables::BASE_URL;
     public function __construct(string $secretKey, string $publicKey, string $encryptKey, string $env)
     {
         parent::__construct($secretKey, $publicKey, $encryptKey, $env);
