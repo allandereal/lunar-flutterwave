@@ -47,7 +47,7 @@ class PaymentForm extends Component
     public function mount()
     {
         $this->setConfig();
-        $this->policy = config('flutterwave.policy', 'capture');
+        $this->policy = config('lunar.flutterwave.policy', 'capture');
     }
 
     /**
@@ -75,11 +75,11 @@ class PaymentForm extends Component
     private function setConfig(): void
     {
         $this->config = [
-            'payment_modal_title' => config('flutterwave.payment_modal_title', config('app.name', 'Lunar Store')),
-            'payment_modal_description' => config('flutterwave.payment_modal_description', 'Checkout at Lunar Store'),
-            'app_logo' => config('flutterwave.app_logo', 'https://checkout.flutterwave.com/assets/img/rave-logo.png'),
+            'payment_modal_title' => config('lunar.flutterwave.payment_modal_title', config('app.name', 'Lunar Store')),
+            'payment_modal_description' => config('lunar.flutterwave.payment_modal_description', 'Checkout at Lunar Store'),
+            'app_logo' => config('lunar.flutterwave.app_logo', 'https://checkout.flutterwave.com/assets/img/rave-logo.png'),
             'public_key' => config('services.flutterwave.public_key'),
-            'payment_options' => config('flutterwave.payment_options'),
+            'payment_options' => config('lunar.flutterwave.payment_options'),
             'tx_ref' => app(config(
                 'flutterwave.actions.generate_transaction_reference',
                 \Lunar\Flutterwave\Actions\GenerateTransactionReference::class)
