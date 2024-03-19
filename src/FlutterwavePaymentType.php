@@ -23,7 +23,7 @@ class FlutterwavePaymentType extends AbstractPayment
     protected Flutterwave $flutterwave;
 
     /**
-     * The transaction object.
+     * The flutterwave transaction object.
      */
     protected ?\stdClass $transaction;
 
