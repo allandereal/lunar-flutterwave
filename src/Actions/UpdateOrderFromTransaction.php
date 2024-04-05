@@ -2,6 +2,7 @@
 
 namespace Lunar\Flutterwave\Actions;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction;
 use Lunar\Models\Order;
@@ -9,13 +10,13 @@ use Lunar\Models\Order;
 class UpdateOrderFromTransaction
 {
     final public static function execute(
-        Order $order,
+        ?Collection $orders,
         ?\stdClass $transaction,
         string $successStatus = 'successful',
         string $failStatus = 'failed'
     ): Order {
-        return DB::transaction(function () use ($order, $transaction) {
-            $order = app(StoreTransaction::class)->store($order, $transaction);
+        return DB::transaction(function () use ($orders, $transaction) {
+            $orders = app(StoreTransaction::class)->store($orders, $transaction);
 
             $statuses = config('lunar.flutterwave.status_mapping', []);
 
@@ -25,12 +26,12 @@ class UpdateOrderFromTransaction
                 $placedAt = now();
             }
 
-            $order->update([
-                'status' => $statuses[$transaction->status] ?? $transaction->status,
-                'placed_at' => $order->placed_at ?: $placedAt,
-            ]);
-
-            return $order;
+            return $orders->map(function ($order) use($statuses, $transaction, $placedAt){
+                return $order->update([
+                    'status' => $statuses[$transaction->status] ?? $transaction->status,
+                    'placed_at' => $order->placed_at ?: $placedAt,
+                ]);
+            });
         });
     }
 }

@@ -51,11 +51,14 @@ class FlutterwavePaymentType extends AbstractPayment
      */
     final public function authorize(): PaymentAuthorize
     {
-        $this->order = $this->cart->draftOrder ?: $this->cart->completedOrder;
+        $this->orders = $this->cart->draftOrder;
+        if ($this->orders->isEmpty()){
+            $this->orders = $this->cart->completedOrders;
+        }
 
-        if (! $this->order) {
+        if (! $this->orders || $this->orders->isEmpty()) {
             try {
-                $this->order = $this->cart->createOrder();
+                $this->orders = $this->cart->createOrders();
             } catch (DisallowMultipleCartOrdersException $e) {
                 return new PaymentAuthorize(
                     success: false,
@@ -71,7 +74,7 @@ class FlutterwavePaymentType extends AbstractPayment
             return new PaymentAuthorize(
                 success: false,
                 message: $e->getMessage(),
-                orderId: $this->order->id,
+                orderId: $this->orders->pluck('id')->toArray(),
             );
         }
 
@@ -81,7 +84,7 @@ class FlutterwavePaymentType extends AbstractPayment
             return new PaymentAuthorize(
                 success: false,
                 message: "Transaction {$this->transaction->status}",
-                orderId: $this->order->id,
+                orderId: $this->orders->pluck('id')->toArray(),
             );
         }
 
@@ -100,12 +103,12 @@ class FlutterwavePaymentType extends AbstractPayment
             }
         }
 
-        $order = UpdateOrderFromTransaction::execute($this->order, $this->transaction);
+        $orders = UpdateOrderFromTransaction::execute($this->orders, $this->transaction);
 
         return new PaymentAuthorize(
-            success: (bool) $order->placed_at,
+            success: (bool) $orders->first()->placed_at, //TODO: confirm if checking only one order is enough
             message: $this->transaction->processor_response,
-            orderId: $order->id
+            orderId: $this->orders->pluck('id')->toArray()
         );
     }
 
