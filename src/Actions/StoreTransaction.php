@@ -82,8 +82,8 @@ class StoreTransaction
             ]);
 
             $transaction->save();
-        });
 
-        return $orders;
+            return $order;
+        });
     }
 }
