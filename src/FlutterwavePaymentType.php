@@ -51,12 +51,12 @@ class FlutterwavePaymentType extends AbstractPayment
      */
     final public function authorize(): PaymentAuthorize
     {
-        $this->orders = $this->cart->draftOrder;
+        $this->orders = collect($this->cart->draftOrder);
         if ($this->orders->isEmpty()){
             $this->orders = $this->cart->completedOrders;
         }
 
-        if (! $this->orders || $this->orders->isEmpty()) {
+        if ($this->orders->isEmpty()) {
             try {
                 $this->orders = $this->cart->createOrders();
             } catch (DisallowMultipleCartOrdersException $e) {
