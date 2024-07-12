@@ -2,7 +2,7 @@
 
 namespace Lunar\Flutterwave\Actions;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 use Lunar\Flutterwave\DataTransferObjects\FlutterwaveTransaction;
 use Lunar\Models\Order;
 use Lunar\Models\Transaction;
