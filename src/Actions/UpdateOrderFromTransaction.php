@@ -14,7 +14,7 @@ class UpdateOrderFromTransaction
         ?\stdClass $transaction,
         string $successStatus = 'successful',
         string $failStatus = 'failed'
-    ): Order {
+    ): Collection {
         return DB::transaction(function () use ($orders, $transaction) {
             $orders = app(StoreTransaction::class)->store($orders, $transaction);
 
