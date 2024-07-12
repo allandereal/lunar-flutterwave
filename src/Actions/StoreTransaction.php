@@ -81,7 +81,9 @@ class StoreTransaction
                 'meta' => $meta,
             ]);
 
-            return $transaction->save();
+            $transaction->save();
         });
+
+        return $orders;
     }
 }
