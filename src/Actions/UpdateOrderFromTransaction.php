@@ -27,10 +27,12 @@ class UpdateOrderFromTransaction
             }
 
             return $orders->map(function ($order) use($statuses, $transaction, $placedAt){
-                return $order->update([
+                $order->update([
                     'status' => $statuses[$transaction->status] ?? $transaction->status,
                     'placed_at' => $order->placed_at ?: $placedAt,
                 ]);
+
+                return $order->refresh();
             });
         });
     }
